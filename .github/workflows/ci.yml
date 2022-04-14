@@ -1,0 +1,59 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  pull_request:
+
+jobs:
+  test-non-integration:
+    name: Test (non-integration)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v2
+      - uses: coursier/cache-action@v5
+      - uses: actions/setup-node@v2
+      - uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
+      - run: sbt test
+
+  test-integration:
+    name: Test (integration)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v2
+      - uses: coursier/cache-action@v5
+      - uses: actions/setup-node@v2
+      - uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
+      - run: sbt it:test

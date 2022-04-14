@@ -2,14 +2,23 @@ name := """scala-play-react-seed"""
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
-  watchSources ++= (baseDirectory.value / "public/ui" ** "*").get
-)
-
 resolvers += Resolver.sonatypeRepo("snapshots")
 
-scalaVersion := "2.12.8"
-
-libraryDependencies += guice
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test
-libraryDependencies += "com.h2database" % "h2" % "1.4.199"
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .configs(IntegrationTest)
+  .settings(
+    scalaVersion := "2.13.7",
+    watchSources ++= (baseDirectory.value / "public/ui" ** "*").get,
+    libraryDependencies ++= Seq(
+      "com.softwaremill.macwire" %% "macros" % "2.3.7" % "provided",
+      "com.typesafe.play" %% "play-slick" % "5.0.0",
+      "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
+      "org.postgresql" % "postgresql" % "42.2.18",
+      "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % "it,test"
+    ),
+    Defaults.itSettings,
+    IntegrationTest / scalaSource := baseDirectory.value / "/it",
+    dependencyClasspath in IntegrationTest := (dependencyClasspath in IntegrationTest).value ++ (exportedProducts in Test).value,
+    (managedClasspath in IntegrationTest) += (packageBin in Assets).value
+  )
